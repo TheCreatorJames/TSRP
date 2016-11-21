@@ -12,6 +12,10 @@ namespace TSRP
 
 <#@include file="NumberTypes.t4" #>
 
+<# 
+	//This is the actual main file. So ignore the following line.
+#>
+// This code is automatically generated.
 public abstract class StackNumber : StackElement
 {
 	protected static Random random = new Random();

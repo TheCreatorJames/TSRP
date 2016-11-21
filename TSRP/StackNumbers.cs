@@ -5,6 +5,7 @@ namespace TSRP
 {
 
 
+// This code is automatically generated.
 public abstract class StackNumber : StackElement
 {
 	protected static Random random = new Random();
@@ -4449,6 +4450,12 @@ public abstract class StackNumber : StackElement
 				
 				stack.Push(Xor(d[0], d[1]));
 			}
+
+
+
+		
+
+
 
 			return false;
         }
