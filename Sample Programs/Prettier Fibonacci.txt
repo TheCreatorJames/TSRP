@@ -1,0 +1,19 @@
+$Console import 	
+
+46 =times 	
+
+0 =counter		 	
+{ $counter 1 + =counter 1 - " " + Write } =WriteCounter 
+
+{ string WriteLine } =Print	
+
+WriteCounter 0 long =n_0 Print  
+WriteCounter 1 long =n_1 Print 
+
+{ WriteCounter $n_0 $n_1 + =n_0 Print } =A 
+{ WriteCounter $n_0 $n_1 + =n_1 Print } =B 
+
+{ A B } $times Repeat
+ 
+{ pop } 
+{ @size 0 != } while 

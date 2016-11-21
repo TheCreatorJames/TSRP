@@ -1,0 +1,46 @@
+$Console import
+
+False =Q pop
+
+50 =Z rand 1 + =value pop
+
+{
+	"Guess a value between 1 and " $Z + " -> " + Write
+
+
+
+	Read int =x pop
+	
+
+	{
+		{ "Higher" }
+		$x $value < if
+
+		{ "Lower" }
+		$x $value > if
+
+		{ 
+			"Good Job!" 
+			True =Q pop
+		}
+		$x $value == if
+	
+		WriteLine
+	}
+	{
+		"Invalid Value, out of range." WriteLine
+	}	
+	$x 1 >=
+	$x $Z <= 
+	and 
+	eif
+
+
+
+	"" WriteLine
+}
+{ $Q ! } 
+while 
+
+
+"The correct value was " $value + "." + WriteLine

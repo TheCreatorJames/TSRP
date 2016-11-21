@@ -1,0 +1,13 @@
+$Console import
+
+2
+{ A B } 46
+{ dup " " + Write 1 + } =W
+{ "" + WriteLine } =d
+0 ulong =a 
+W 0 d 
+W 1 =b d
+{ W $a $b + } =Q 
+{ Q =a d } =A
+{ Q =b d } =B
+{ pop } =e 6 Repeat Repeat e

@@ -1,0 +1,20 @@
+$Console import
+
+[] =Nums pop
+[ { _$c } 100 Repeat:c ]
+{
+	{
+		_$q :>Nums
+	}	
+	size rand _=s at 
+	_=q 1 > 
+	if
+	
+	-1 _$s set
+}
+{
+	::Nums 6 <
+}
+while
+empty**
+{ :<Nums " " + Write } 6 Repeat:c
