@@ -1,0 +1,5 @@
+﻿<#+
+public readonly string[] types = new string[] { "int", "double", "float", "uint", "long", "ulong", "short", "ushort", "byte", "sbyte" };
+public readonly string[] types2 = new string[] { "Int", "Double", "Float", "UnsignedInt", "Long", "UnsignedLong", "Short", "UnsignedShort", "Byte", "SignedByte" };
+public readonly int[] priorities = new int[] { 1, 4, 3, 1, 2, 2, 0, 0, -1, -1 };
+#>

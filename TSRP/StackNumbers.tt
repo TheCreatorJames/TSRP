@@ -1,0 +1,702 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+
+<#@ output extension=".cs" #>
+using System;
+
+namespace TSRP
+{
+
+<#@include file="NumberTypes.t4" #>
+
+public abstract class StackNumber : StackElement
+{
+	protected static Random random = new Random();
+		public abstract byte[] Bytes
+		{
+			get;
+		}
+
+<#		for(var i = 0; i < types.Length; i++) {
+
+
+#>
+	public <#=types[i]#> To<#=types2[i]#>()
+	{
+<#		for(var j = 0; j < types.Length; j++) {
+
+
+#>
+		if(this is Stack<#=types2[j]#>)
+		{
+			return (<#=types[i]#>)((Stack<#=types2[j]#>)this).Value;
+		}
+
+<#}#>	
+		return 0;
+	}
+<#}#>
+	
+	public static StackNumber Convert(string command, string value)
+	{
+<#		for(var i = 0; i < types.Length; i++)
+		{#>
+			if( command == "<#=types[i]#>")
+			{
+				<#=types[i]#> a = 0;
+				var b = <#=types[i]#>.TryParse(value, out a);
+				return new Stack<#=types2[i]#>(a);
+			}
+
+<#      }#>
+		return null;
+	}
+
+	//Yes this is really hackish, but meh. It's a learning thing. 
+	protected static StackNumber[] Convert(StackNumber a, StackNumber b)
+	{
+
+		<#for(int i = 0; i < types.Length; i++){#>
+		
+		if(a is Stack<#=types2[i]#>)
+		{
+<#for(int j = 0; j < types.Length; j++){#>
+			if(b is Stack<#=types2[j]#>)
+			{
+<# if(priorities[i] >= priorities[j]) { #>
+				
+				return new StackNumber[] { a, new Stack<#=types2[i]#>((<#=types[i]#>)((Stack<#=types2[j]#>)b).Value) };
+
+<# } else { #>
+
+				return new StackNumber[] { new Stack<#=types2[j]#>((<#=types[j]#>)((Stack<#=types2[i]#>)a).Value), b };
+
+<# } #>
+			}
+<#}#>
+		}
+
+<#}#>
+		return null;
+	} 
+}
+
+<#
+
+	for(int i = 0; i < types.Length; i++)
+	{ #>
+    public class Stack<#=types2[i]#> : StackNumber
+    {
+        private <#=types[i]#> value;
+
+		
+        public <#=types[i]#> Value
+        {
+            get
+            {
+                return value;
+            }
+
+            set
+            {
+                this.value = value;
+            }
+        }
+        
+        public Stack<#=types2[i]#>() : this(0)
+        {
+
+        }
+
+		public override byte[] Bytes
+		{
+			get
+			{
+				return BitConverter.GetBytes(value);
+			}
+		}
+
+        public Stack<#=types2[i]#>(<#=types[i]#> value)
+        {
+            this.value = value;
+        }
+
+
+		public Stack<#=types2[i]#>(Stack<#=types2[i]#> copy) : this(copy.value)
+		{
+		
+		}
+
+		public static Stack<#=types2[i]#> Add(Stack<#=types2[i]#> a, Stack<#=types2[i]#> b, bool flip = false)
+		{
+			<#=types[i]#> c = a.value;
+			if(flip)
+			{
+				c -= b.value;
+			} 
+			else
+			{
+				c += b.value;
+			}
+		
+
+			return new Stack<#=types2[i]#>(c);
+		}
+		
+        public override object  Clone()
+		{
+			return new Stack<#=types2[i]#>(this);
+		}
+
+		public static Stack<#=types2[i]#> Multiply(Stack<#=types2[i]#> a, Stack<#=types2[i]#> b)
+		{
+			<#=types[i]#> c = (<#=types[i]#>)(a.value * b.value);
+			return new Stack<#=types2[i]#>(c);
+		}
+
+		
+
+		public static Stack<#=types2[i]#> Power(Stack<#=types2[i]#> a, Stack<#=types2[i]#> b)
+		{
+			<#=types[i]#> c = (<#=types[i]#>)(Math.Pow(a.value,b.value));
+			return new Stack<#=types2[i]#>(c);
+		}
+
+
+		public static bool Equals(Stack<#=types2[i]#> a, Stack<#=types2[i]#> b)
+		{
+			bool c = a.value == b.value;
+			return c;
+		}
+
+
+		public static bool GT(Stack<#=types2[i]#> a, Stack<#=types2[i]#> b)
+		{
+			bool c = a.value > b.value;
+			return c;
+		}
+
+
+		public static bool LT(Stack<#=types2[i]#> a, Stack<#=types2[i]#> b)
+		{
+			bool c = a.value < b.value;
+			return c;
+		}
+
+
+		public static bool GTE(Stack<#=types2[i]#> a, Stack<#=types2[i]#> b)
+		{
+			bool c = a.value >= b.value;
+			return c;
+		}
+
+
+		
+		public static bool LTE(Stack<#=types2[i]#> a, Stack<#=types2[i]#> b)
+		{
+			bool c = a.value <= b.value;
+			return c;
+		}
+
+
+
+					
+		public static Stack<#=types2[i]#> Ceil(Stack<#=types2[i]#> a)
+		{	
+<# if (!(types2[i].Contains("Double") || types2[i].Contains("Float"))) { #>
+			return new Stack<#=types2[i]#>(a);
+			
+<# } else { #>
+			return new Stack<#=types2[i]#>((<#=types[i]#>)Math.Ceiling(a.value));
+
+<# } #>
+		}
+					
+		public static Stack<#=types2[i]#> Floor(Stack<#=types2[i]#> a)
+		{	
+<# if (!(types2[i].Contains("Double") || types2[i].Contains("Float"))) { #>
+			return new Stack<#=types2[i]#>(a);
+			
+<# } else { #>
+			return new Stack<#=types2[i]#>((<#=types[i]#>)Math.Floor(a.value));
+
+<# } #>
+		}
+					
+		public static Stack<#=types2[i]#> Round(Stack<#=types2[i]#> a)
+		{	
+<# if (!(types2[i].Contains("Double") || types2[i].Contains("Float"))) { #>
+			return new Stack<#=types2[i]#>(a);
+			
+<# } else { #>
+			return new Stack<#=types2[i]#>((<#=types[i]#>)Math.Round(a.value));
+
+<# } #>
+		}
+
+<# if (!(types2[i].Contains("Double") || types2[i].Contains("Float"))) { #>
+
+		public static Stack<#=types2[i]#> And(Stack<#=types2[i]#> a, Stack<#=types2[i]#> b)
+		{
+			<#=types[i]#> c = (<#=types[i]#>)(a.value & b.value);
+			return new Stack<#=types2[i]#>(c);
+		}
+
+		public static Stack<#=types2[i]#> Or(Stack<#=types2[i]#> a, Stack<#=types2[i]#> b)
+		{
+			<#=types[i]#> c = (<#=types[i]#>)(a.value | b.value);
+			return new Stack<#=types2[i]#>(c);
+		}
+
+		public static Stack<#=types2[i]#> Xor(Stack<#=types2[i]#> a, Stack<#=types2[i]#> b)
+		{
+			<#=types[i]#> c = (<#=types[i]#>)(a.value ^ b.value);
+			return new Stack<#=types2[i]#>(c);
+		}
+
+		public static Stack<#=types2[i]#> LSL(Stack<#=types2[i]#> a, Stack<#=types2[i]#> b)
+		{
+			<#=types[i]#> c = (<#=types[i]#>)(a.value << (int)b.value);
+			return new Stack<#=types2[i]#>(c);
+		}
+
+		public static Stack<#=types2[i]#> LSR(Stack<#=types2[i]#> a, Stack<#=types2[i]#> b)
+		{
+			<#=types[i]#> c = (<#=types[i]#>)(a.value >> (int)b.value);
+			return new Stack<#=types2[i]#>(c);
+		}
+
+		public static Stack<#=types2[i]#> Not(Stack<#=types2[i]#> a)
+		{
+			<#=types[i]#> c = (<#=types[i]#>)(~a.value);
+			return new Stack<#=types2[i]#>(c);
+		}
+
+<# } else { #>
+
+		
+	
+
+<#}#>
+
+		public static Stack<#=types2[i]#> Divide(Stack<#=types2[i]#> a, Stack<#=types2[i]#> b)
+		{
+			<#=types[i]#> c = (<#=types[i]#>)(a.value / b.value);
+			return new Stack<#=types2[i]#>(c);
+		}
+		
+
+		public static Stack<#=types2[i]#> Modulo(Stack<#=types2[i]#> a, Stack<#=types2[i]#> b)
+		{
+			<#=types[i]#> c = (<#=types[i]#>)(a.value % b.value);
+			return new Stack<#=types2[i]#>(c);
+		}
+
+		public static Stack<#=types2[i]#> Max(Stack<#=types2[i]#> a, Stack<#=types2[i]#> b)
+		{			
+			if(a.value > b.value)
+			{
+				return new Stack<#=types2[i]#>(a);
+			}
+
+			return new Stack<#=types2[i]#>(b);
+		}
+		
+		public static Stack<#=types2[i]#> Min(Stack<#=types2[i]#> a, Stack<#=types2[i]#> b)
+		{			
+			if(a.value < b.value)
+			{
+				return new Stack<#=types2[i]#>(a);
+			}
+
+			return new Stack<#=types2[i]#>(b);
+		}
+
+				
+		public static Stack<#=types2[i]#> Abs(Stack<#=types2[i]#> a)
+		{	
+			<# if (types2[i].Contains("Unsigned")) { #>
+			return new Stack<#=types2[i]#>(a);
+			
+			<# } else { #>
+			return new Stack<#=types2[i]#>((<#=types[i]#>)Math.Abs(a.value));
+
+			<# } #>
+		}
+
+
+
+		public static StackString Stringify(Stack<#=types2[i]#> a)
+		{	
+			return new StackString(a.ToString());
+		}
+
+
+
+		//	if(stack.Top is Stack<#=types2[i]#> && stack.FromTop(1) is Stack<#=types2[i]#>)
+		
+		private static StackElement[] CheckNGo(string command, TSRPStack stack)
+		{
+
+			if(stack.Count < 2) return null; 
+
+			if(stack.Top.GetType() == typeof(Stack<#=types2[i]#>) && stack.FromTop(1).GetType() == typeof(Stack<#=types2[i]#>))
+			{
+				Stack<#=types2[i]#> b = (Stack<#=types2[i]#>)stack.Pop();
+				Stack<#=types2[i]#> a = (Stack<#=types2[i]#>)stack.Pop();
+				Stack<#=types2[i]#>[] c = new Stack<#=types2[i]#>[] { a, b };
+				return c;
+			}
+
+			// Also a hack but it works.
+			if(command == "+" && stack.Top is StackNumber && stack.FromTop(1) is StackString)
+			{
+				Stack<#=types2[i]#> a = (Stack<#=types2[i]#>)stack.Pop();
+				var b = new StackString((StackString)stack.Pop());
+				b.Value += a.value; 
+				stack.Push(b);
+				return new StackElement[]{ new StackBool(true) };
+			}
+
+			if(stack.Top is StackNumber && stack.FromTop(1) is StackNumber)
+			{
+				StackNumber b = (StackNumber)stack.Pop();
+				StackNumber a = (StackNumber)stack.Pop();
+				StackElement[] c =  Convert(a,b); 
+				stack.Push(c[0]); 
+				stack.Push(c[1]);
+				var res = stack.Top.Execute(command,stack);
+				c = new StackElement[] { new StackBool(res) };	
+				return c;
+			}
+			
+			return null;
+		}
+
+
+
+        public override bool Execute(string command, TSRPStack stack)
+        {
+            if(command == "+")
+			{
+				var c = CheckNGo(command, stack);
+				if(c == null) return false;
+				if(c.Length == 1) return true; 
+				
+				Stack<#=types2[i]#>[] d = (Stack<#=types2[i]#>[])c;
+				
+				stack.Push(Add(d[0], d[1]));
+				return true;
+			}
+			else
+			if(command == "-")
+			{
+				var c = CheckNGo(command, stack);
+				if(c == null) return false;
+				if(c.Length == 1) return true; 
+				
+				Stack<#=types2[i]#>[] d = (Stack<#=types2[i]#>[])c;
+
+				stack.Push(Add(d[0], d[1], true));
+				return true;
+			}
+			else 
+			if(command == "*")
+			{
+				var c = CheckNGo(command, stack);
+				if(c == null) return false;
+				if(c.Length == 1) return true; 
+				
+				
+				Stack<#=types2[i]#>[] d = (Stack<#=types2[i]#>[])c;
+
+				stack.Push(Multiply(d[0], d[1]));
+				return true;
+			}
+			else 
+			if(command == "^")
+			{
+				var c = CheckNGo(command, stack);
+				if(c == null) return false;
+				if(c.Length == 1) return true; 
+				
+				
+				Stack<#=types2[i]#>[] d = (Stack<#=types2[i]#>[])c;
+
+				stack.Push(Power(d[0], d[1]));
+				return true;
+			}
+			else 
+			if(command == "/")
+			{
+				var c = CheckNGo(command, stack);
+				if(c == null) return false;
+				if(c.Length == 1) return true; 
+				
+				
+				Stack<#=types2[i]#>[] d = (Stack<#=types2[i]#>[])c;
+
+				stack.Push(Divide(d[0], d[1]));
+				return true;
+
+			}
+			else 
+			if(command == "%" || command=="mod")
+			{
+				var c = CheckNGo(command, stack);
+				if(c == null) return false;
+				if(c.Length == 1) return true; 
+				
+				
+				Stack<#=types2[i]#>[] d = (Stack<#=types2[i]#>[])c;
+
+				stack.Push(Modulo(d[0], d[1]));
+				return true;
+			}
+			else 
+			if(command == "max")
+			{
+				var c = CheckNGo(command, stack);
+				if(c == null) return false;
+				if(c.Length == 1) return true; 
+				
+				Stack<#=types2[i]#>[] d = (Stack<#=types2[i]#>[])c;
+
+				stack.Push(Max(d[0], d[1]));
+				return true;
+			}
+			else 
+			if(command == "min")
+			{
+				var c = CheckNGo(command, stack);
+				if(c == null) return false;
+				if(c.Length == 1) return true; 
+				
+				Stack<#=types2[i]#>[] d = (Stack<#=types2[i]#>[])c;
+
+				stack.Push(Min(d[0], d[1]));
+				return true;
+			}
+			else 
+			if(command == "<")
+			{
+				var c = CheckNGo(command, stack);
+				if(c == null) return false;
+				if(c.Length == 1) return true; 
+				
+				Stack<#=types2[i]#>[] d = (Stack<#=types2[i]#>[])c;
+
+
+				stack.Push(LT(d[0], d[1]));
+			}
+			else 
+			if(command == ">")
+			{
+			
+				var c = CheckNGo(command, stack);
+				if(c == null) return false;
+				if(c.Length == 1) return true; 
+				Stack<#=types2[i]#>[] d = (Stack<#=types2[i]#>[])c;
+
+				stack.Push(GT(d[0], d[1]));
+			}
+			else 
+			if(command == "==")
+			{
+			
+				var c = CheckNGo(command, stack);
+				if(c == null) return false;
+				if(c.Length == 1) return true; 
+				
+				Stack<#=types2[i]#>[] d = (Stack<#=types2[i]#>[])c;
+				
+				stack.Push(Equals(d[0], d[1]));
+			}
+			else 
+			if(command == "!=")
+			{
+			
+				var c = CheckNGo(command, stack);
+				if(c == null) return false;
+				if(c.Length == 1) return true; 
+				
+				Stack<#=types2[i]#>[] d = (Stack<#=types2[i]#>[])c;
+				
+				stack.Push(!Equals(d[0], d[1]));
+			}
+			else 
+			if(command == ">=")
+			{
+				var c = CheckNGo(command, stack);
+				if(c == null) return false;
+				if(c.Length == 1) return true; 
+				Stack<#=types2[i]#>[] d = (Stack<#=types2[i]#>[])c;
+				
+				stack.Push(GTE(d[0], d[1]));
+			}
+			else 
+			if(command == "<=")
+			{
+				
+				var c = CheckNGo(command, stack);
+
+				if(c == null) return false;
+				if(c.Length == 1) return true; 
+				Stack<#=types2[i]#>[] d = (Stack<#=types2[i]#>[])c;
+
+				stack.Push(LTE(d[0], d[1]));
+			}
+			<# for(var j = 0; j < types.Length; j++)
+			{
+			#>
+else if(command == "<#=types[j]#>") 
+			{
+				stack.Pop();
+				stack.Push((<#=types[j]#>)value);
+
+				return true;
+			}
+			<# } #>
+			else if(command == "string")
+			{
+				stack.Pop();
+				stack.Push(Stringify(this));
+				return true;
+			}
+			else if (command == "abs" || command == "Abs")
+			{
+				stack.Pop();
+				stack.Push(Abs(this));
+				return true;
+			}
+			else if(command == "round")
+			{
+			
+				stack.Pop();
+				stack.Push(Round(this));
+				return true;
+			}
+			else if(command == "floor")
+			{
+			
+				stack.Pop();
+				stack.Push(Floor(this));
+				return true;
+			}
+			else if(command == "ceil")
+			{
+				stack.Pop();
+				stack.Push(Ceil(this));
+				return true;
+			}
+			else if (command == "rand")
+			{
+				stack.Pop();
+				stack.Push(random.Next((int)value));
+				return true;
+			}
+			else if (command == "char2str")
+			{
+				stack.Pop();
+				stack.Push("" + (char)this.ToUnsignedShort());
+				return true;
+			}
+<# if (!(types2[i].Contains("Double") || types2[i].Contains("Float"))) { #>
+			else if (command == "~")
+			{
+				
+				if(stack.Top is Stack<#=types2[i]#>)
+				{ 
+					Stack<#=types2[i]#> d = (Stack<#=types2[i]#>)stack.Pop();
+					stack.Push(Not(d));
+					return true;
+				}
+			}
+			else if (command == ">>")
+			{
+			
+				var c = CheckNGo(command, stack);
+				if(c == null) return false;
+				if(c.Length == 1) return true; 
+				Stack<#=types2[i]#>[] d = (Stack<#=types2[i]#>[])c;
+				
+				stack.Push(LSR(d[0], d[1]));
+			}
+			else if (command == "<<")
+			{
+			
+				var c = CheckNGo(command, stack);
+				if(c == null) return false;
+				if(c.Length == 1) return true; 
+				Stack<#=types2[i]#>[] d = (Stack<#=types2[i]#>[])c;
+				
+				stack.Push(LSL(d[0], d[1]));
+			}
+			else if (command == "&" || command == "and")
+			{
+			
+				var c = CheckNGo(command, stack);
+				if(c == null) return false;
+				if(c.Length == 1) return true; 
+				Stack<#=types2[i]#>[] d = (Stack<#=types2[i]#>[])c;
+				
+				stack.Push(And(d[0], d[1]));
+			}
+			else if (command == "|" || command == "or")
+			{
+			
+				var c = CheckNGo(command, stack);
+				if(c == null) return false;
+				if(c.Length == 1) return true; 
+				Stack<#=types2[i]#>[] d = (Stack<#=types2[i]#>[])c;
+				
+				stack.Push(Or(d[0], d[1]));
+			}
+			else if (command == "xor")
+			{
+			
+				var c = CheckNGo(command, stack);
+				if(c == null) return false;
+				if(c.Length == 1) return true; 
+				Stack<#=types2[i]#>[] d = (Stack<#=types2[i]#>[])c;
+				
+				stack.Push(Xor(d[0], d[1]));
+			}
+<# } else { #>
+
+<# } #>
+
+
+
+		
+
+
+
+			return false;
+        }
+
+
+<# for(var j = 0; j < types.Length; j++)
+			if(i!=j){#>
+
+		public static explicit operator Stack<#=types2[j]#>(Stack<#=types2[i]#> n)
+        {
+            return new Stack<#=types2[j]#>((<#=types[j]#>)n.value);
+        }
+
+<#
+}#>
+		
+		public override string ToString()
+		{
+			return value.ToString();
+		}
+    }
+
+
+
+<#}#>
+}

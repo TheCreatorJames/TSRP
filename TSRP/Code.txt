@@ -1,0 +1,55 @@
+﻿$Console import
+
+{
+	"Calling A!" WriteLine 
+	"A" _=Hello 
+	WriteLine 
+	B 
+	"Back to A!" WriteLine
+	_$Hello WriteLine 
+} =A
+
+
+{ 
+	"Calling B!" WriteLine
+	_$Hello " (can see calling values)" + WriteLine 
+	
+
+	D
+	
+	"Back to B!" WriteLine
+	_$Hello WriteLine 
+
+	{
+	 "B" _=Hello " (changing it)" +
+	WriteLine 
+	} pop
+	D
+} =B
+
+{ 
+	"Calling D!" WriteLine
+	_$Hello " (can see calling values)" + WriteLine 
+	
+
+	"D" _=Hello " (changing it)" +
+	WriteLine 
+} =D
+
+
+
+{
+	hold
+	"Calling C!" WriteLine 
+	"C" _=Hello 
+	WriteLine 
+	B 
+
+	"Back to C!"  WriteLine
+
+	_$Hello WriteLine 
+} =C 
+
+
+A
+C 

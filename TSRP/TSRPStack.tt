@@ -1,0 +1,144 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ output extension=".cs" #>
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+<#@include file="NumberTypes.t4" #>
+
+
+namespace TSRP
+{
+
+    public class TSRPStack
+    {
+        private Stack<StackElement> elements;
+		private Stack<StackCustom> customs; 
+
+        public TSRPStack()
+        {
+			customs = new Stack<StackCustom>();
+            elements = new Stack<StackElement>();
+        }
+
+        public StackElement[] Elements
+        {
+            get
+            {
+				var result = elements.ToArray();
+				Array.Reverse(result);
+
+                return result;
+            }
+
+			set
+			{
+				elements.Clear();
+				foreach(StackElement el in value)
+				{
+					Push(el);
+				}
+			}
+            
+        }
+
+
+		public void Reverse()
+		{
+			
+            //inefficient but necessary without more tricks
+			elements = new Stack<StackElement>(elements.Reverse());
+			customs = new Stack<StackCustom>(customs.Reverse());
+		}
+
+        public int Count
+        {
+            get
+            {
+                return elements.Count;
+            }
+        }
+
+
+		public void Clear()
+		{
+			elements.Clear();
+		}
+
+
+<#	for(int i = 0; i < types.Length; i++) { #>	
+		public void Push(<#=types[i]#> n)
+        {
+            Push(new Stack<#=types2[i]#>(n));
+        }
+
+	<#}#>
+
+        public void Push(bool n)
+        {
+            Push(new StackBool(n));
+        }
+
+        public void Push(string n)
+        {
+	
+
+            Push(new StackString(n));
+        }
+
+        public void Push(StackElement n)
+        {
+			if(n is StackCustom) customs.Push((StackCustom)n);
+            elements.Push(n);
+        }
+
+        public StackElement FromTop(int n)
+        {
+			if(Count < n) return null;
+        
+            return elements.ElementAt(n);
+        }
+
+		public StackCustom TopCustom
+		{
+			get
+			{
+				if(customs.Count == 0) return null;
+				return customs.Peek();
+			}
+		}
+
+        public StackElement Top
+        {
+            get
+            {
+				if(Count == 0) return null;
+                return elements.Peek();
+            }
+        }
+
+        public StackElement Pop()
+        {
+			if(Top == TopCustom) customs.Pop();
+            return elements.Pop();
+        }
+
+		public override String ToString()
+		{
+			string result = "";
+			foreach(var s in elements)
+			{
+				result = s.ToString() + " " + result;
+			}
+			return result;
+
+		}
+    }
+}
